@@ -1,21 +1,5 @@
-//1) Define the required variables used to track the state of the game.
-
-//2) Store cached element references.
-
-//3) Upon loading, the game state should be initialized, and a function should 
-//   be called to render this game state.
-
-//4) The state of the game should be rendered to the user.
-
-//5) Define the required constants.
-
-//6) Handle a player clicking a square with a `handleClick` function.
-
-//7) Create Reset functionality.
-
 /*-------------------------------- Constants --------------------------------*/
 
-const choice = ['X', 'O'];
 const winningCombos = [
     [0, 1, 2],
     [3, 4, 5],
@@ -25,7 +9,7 @@ const winningCombos = [
     [2, 5, 8],
     [0, 4, 8],
     [2, 4, 6]
-]
+];
 
 /*---------------------------- Variables (state) ----------------------------*/
 
@@ -38,62 +22,104 @@ let tie;
 
 const squareEls = document.querySelectorAll('.sqr');
 const messageEl = document.querySelector('#message');
-const boards = document.querySelectorAll('board');
 const resetBtnEl = document.querySelector('#reset');
 
 /*-------------------------------- Functions --------------------------------*/
+
+const init = () => {
+    board = [
+        '', '', '',
+        '', '', '',
+        '', '', '',
+    ];
+    turn = 'X';
+    winner = false;
+    tie = false;
+    render();
+};
 
 const render = () => {
     updateBoard();
     updateMessage();
 };
 
-const init = () => {
-    board = [
-        '', '', '',
-        '', '', '',
-        '', '', ''  
-    ];
-    turn = choice[0];
-    winner === false;
-    tie === false;
-    render();
-};
-
 const updateBoard = () => {
-    board.forEach((element, index) => {
-        const square = squareEls[index];
-        square.textContent = element;
+    board.forEach((element, idx) => {
+        if (element === 'X') {
+            squareEls[idx].textContent = 'X';
+        } else if (element === 'O') {
+            squareEls[idx].textContent = 'O';
+        } else {
+            squareEls[idx].textContent = '';
+        }
     });
 };
 
 const updateMessage = () => {
     if (winner === false && tie === false) {
-        messageEl = `It is now ${choice}'s turn.`;
+        messageEl.textContent = `It is now ${turn}'s turn.`;
     } else if (winner === false && tie === true) {
-        messageEl = 'It is a TIE! Play again!';
+        messageEl.textContent = `It is a tie! Click Reset to try again.`;
     } else {
-        messageEl = `Congratulations, player ${choice}! You have won this round!`;
+        messageEl.textContent = `Congratulations, player ${turn}! You have won this round!`;
     }
 };
 
+
 const handleClick = (event) => {
-    const squareIndex = (event.target.id);
+    const squareIndex = event.target.id;
+    if (board[squareIndex] !== '' || winner === true) {
+        return;
+    }
     placePiece(squareIndex);
+    checkForWinner();
+    checkForTie();
+    switchPlayerTurn();
+    render();
 };
 
 const placePiece = (index) => {
     board[index] = turn;
-    console.log(board);
-}
+};
 
+const checkForWinner = () => {
+    winningCombos.forEach((combo) => {
+        if (
+            board[combo[0]] !== '' && 
+            board[combo[0]] === board[combo[1]] &&
+            board[combo[0]] === board[combo[2]]
+        ) {
+            winner = true;
+        }
+    });
+};
+
+const checkForTie = () => {
+    if (winner === true) {
+        return;
+    }
+    if (!board.includes('')) {
+        tie = true;
+    }
+};
+
+const switchPlayerTurn = () => {
+    if (winner === true) {
+        return;
+    } else if (winner === false) {
+        if (turn === 'X') {
+            turn = 'O';
+        } else if (turn === 'O') {
+            turn = 'X';
+        }
+    }
+};
+
+init();
 /*----------------------------- Event Listeners -----------------------------*/
+
 squareEls.forEach((square) => {
     square.addEventListener('click', handleClick);
 });
 
-
-document.querySelector('#reset').addEventListener('click', init);
-init()
-
-
+resetBtnEl.addEventListener('click', init);
